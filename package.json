@@ -1,0 +1,16 @@
+{
+	"name": "mkv-builded",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"dev": "node src/app.js --debug"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"dependencies": {
+		"chalk": "^4.1.0",
+		"cli": "^1.0.1"
+	}
+}

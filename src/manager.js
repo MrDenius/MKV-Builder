@@ -1,0 +1,112 @@
+const mkv = require("./mkv");
+const fs = require("fs");
+const path = require("path");
+
+module.exports = (() => {
+	const api = () => {};
+
+	let query = [];
+
+	const CreateQuery = (settings) => {
+		query = [];
+		let indexes = [];
+		let i = 0;
+
+		const GetQueryIndex = (index) => {
+			return Number(indexes.findIndex((el) => el === index));
+		};
+
+		settings.Video.forEach((s) => {
+			indexes.push(s.index);
+			query[GetQueryIndex(s.index)] = {
+				Video: s,
+				Audio: [],
+				Subtitle: [],
+			};
+		});
+		query = query.filter((s) => s?.Video);
+		settings.Audio.forEach((s) => {
+			if (GetQueryIndex(s.index) != -1)
+				query[GetQueryIndex(s.index)].Audio.push(s);
+		});
+		settings.Subtitle.forEach((s) => {
+			if (GetQueryIndex(s.index) != -1)
+				query[GetQueryIndex(s.index)].Subtitle.push(s);
+		});
+
+		query = query.sort(
+			(a, b) => Number(a.Video.index) - Number(b.Video.index)
+		);
+	};
+
+	let outputPath = "";
+	const CreateFoldersQuery = (query) => {
+		const outputFolder = path.join(
+			path.dirname(query[0].Video.path),
+			"Output"
+		);
+
+		const date = new Date();
+
+		outputPath = path.join(
+			outputFolder,
+			date.toLocaleDateString() +
+				" " +
+				date.toLocaleTimeString().replace(/\:/g, "-")
+		);
+
+		console.log(outputFolder);
+		console.log(outputPath);
+
+		if (!fs.existsSync(outputFolder)) fs.mkdirSync(outputFolder);
+
+		if (fs.existsSync(outputPath))
+			fs.rmdirSync(outputPath, { recursive: true });
+		fs.mkdirSync(outputPath);
+	};
+
+	const StartBuilding = (settings) => {
+		CreateQuery(settings);
+		CreateFoldersQuery(query);
+
+		let i = 0;
+		const Start = () => {
+			const q = query[i];
+			if (!q) return;
+			console.log(q);
+			mkv(
+				path.join(outputPath, `[${q.Video.index}] ${q.Video.name}.mkv`)
+			).AddToCon(q.Video.path, [
+				{ language: q.Video.language },
+				{ language: q.Video.language },
+			]);
+			q.Audio.forEach((s) => {
+				mkv.AddToCon(s.path, {
+					language: s.language.substr(0, 2).toLowerCase(),
+					name: s.name,
+				});
+			});
+			q.Subtitle.forEach((s) => {
+				mkv.AddToCon(s.path, {
+					language: s.language.substr(0, 2).toLowerCase(),
+					name: s.name,
+				});
+			});
+			const pr = mkv.Start();
+			pr.on("exit", () => {
+				i++;
+				Start();
+			});
+			pr.stdout.on("data", (data) => console.log(data.toString()));
+		};
+
+		Start();
+
+		// console.log(query);
+		//console.log(query[0]);
+	};
+
+	api.StartBuilding = StartBuilding;
+
+	return api;
+})();
