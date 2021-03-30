@@ -1,6 +1,7 @@
 const mkv = require("./mkv");
 const fs = require("fs");
 const path = require("path");
+const child_process = require("child_process");
 
 module.exports = (() => {
 	const api = () => {};
@@ -41,6 +42,24 @@ module.exports = (() => {
 
 	let outputPath = "";
 	const CreateFoldersQuery = (query) => {
+		const CreateLinkToOutput = () => {
+			if (
+				fs.existsSync(
+					path.join(path.dirname(query[0].Video.path), "LastOutput")
+				)
+			)
+				fs.rmdirSync(
+					path.join(path.dirname(query[0].Video.path), "LastOutput")
+				);
+			child_process.spawn("cmd.exe", [
+				"/C",
+				"mklink",
+				"/D",
+				path.join(path.dirname(query[0].Video.path), "LastOutput"),
+				outputPath,
+			]);
+		};
+
 		const outputFolder = path.join(
 			path.dirname(query[0].Video.path),
 			"Output"
@@ -63,6 +82,7 @@ module.exports = (() => {
 		if (fs.existsSync(outputPath))
 			fs.rmdirSync(outputPath, { recursive: true });
 		fs.mkdirSync(outputPath);
+		CreateLinkToOutput();
 	};
 
 	const StartBuilding = (settings) => {
@@ -84,12 +104,14 @@ module.exports = (() => {
 				mkv.AddToCon(s.path, {
 					language: s.language.substr(0, 2).toLowerCase(),
 					name: s.name,
+					default: s.default,
 				});
 			});
 			q.Subtitle.forEach((s) => {
 				mkv.AddToCon(s.path, {
 					language: s.language.substr(0, 2).toLowerCase(),
 					name: s.name,
+					default: s.default,
 				});
 			});
 			const pr = mkv.Start();

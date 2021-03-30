@@ -5,7 +5,7 @@ const mkv = require("./mkv");
 module.exports = (folder) => {
 	const api = () => {};
 
-	const folderSettings = {
+	let folderSettings = {
 		Video: [],
 		Audio: [],
 		Subtitle: [],
@@ -21,68 +21,81 @@ module.exports = (folder) => {
 		});
 	};
 
+	const GetDirManifest = (dir) => {
+		if (fs.existsSync(path.join(dir, "manifest.json")))
+			return JSON.parse(
+				fs.readFileSync(path.join(dir, "manifest.json")).toString()
+			);
+	};
+
 	const ParseFolderSetting = () => {
-		ParseDir(
-			folder,
-			(dir) => {
-				[language, type] = dir.toLowerCase().split(" ");
+		const manifest = GetDirManifest(folder);
+		if (!manifest)
+			ParseDir(
+				folder,
+				(dir) => {
+					[language, type] = dir.toLowerCase().split(" ");
 
-				if (type === "audio" || type === "sound") {
-					ParseDir(path.join(folder, dir), undefined, (file) => {
-						const settings = ParseName(file);
-						settings.path = path.join(folder, dir, file);
-						settings.language = settings.language || language;
-						settings.name = settings.name || language;
-
-						folderSettings.Audio.push(settings);
-					});
-				}
-
-				if (type === "subs") {
-					ParseDir(
-						path.join(folder, dir),
-						(dirSigns) => {
-							if (dirSigns.toLowerCase() === "signs") {
-								ParseDir(
-									path.join(folder, dir, dirSigns),
-									undefined,
-									(file) => {
-										const settings = ParseName(file);
-										settings.path = path.join(
-											folder,
-											dir,
-											dirSigns,
-											file
-										);
-
-										settings.language =
-											settings.language || language;
-										settings.name =
-											settings.name || "Signs";
-
-										folderSettings.Subtitle.push(settings);
-									}
-								);
-							}
-						},
-						(file) => {
+					if (type === "audio" || type === "sound") {
+						ParseDir(path.join(folder, dir), undefined, (file) => {
 							const settings = ParseName(file);
 							settings.path = path.join(folder, dir, file);
 							settings.language = settings.language || language;
-							settings.name = settings.name || "Full";
+							// settings.name = settings.name || language;
 
-							folderSettings.Subtitle.push(settings);
-						}
-					);
+							folderSettings.Audio.push(settings);
+						});
+					}
+
+					if (type === "subs") {
+						ParseDir(
+							path.join(folder, dir),
+							(dirSigns) => {
+								if (dirSigns.toLowerCase() === "signs") {
+									ParseDir(
+										path.join(folder, dir, dirSigns),
+										undefined,
+										(file) => {
+											const settings = ParseName(file);
+											settings.path = path.join(
+												folder,
+												dir,
+												dirSigns,
+												file
+											);
+
+											settings.language =
+												settings.language || language;
+											settings.name =
+												settings.name || "Signs";
+
+											folderSettings.Subtitle.push(
+												settings
+											);
+										}
+									);
+								}
+							},
+							(file) => {
+								const settings = ParseName(file);
+								settings.path = path.join(folder, dir, file);
+								settings.language =
+									settings.language || language;
+								settings.name = settings.name || "Full";
+
+								folderSettings.Subtitle.push(settings);
+							}
+						);
+					}
+				},
+				(file) => {
+					const settings = ParseName(file);
+					settings.path = path.join(folder, file);
+
+					folderSettings.Video.push(settings);
 				}
-			},
-			(file) => {
-				const settings = ParseName(file);
-				settings.path = path.join(folder, file);
-
-				folderSettings.Video.push(settings);
-			}
-		);
+			);
+		else folderSettings = manifest;
 
 		Object.entries(folderSettings).forEach(([key, value]) => {
 			folderSettings[key] = value.filter((value) => {
@@ -107,6 +120,8 @@ module.exports = (folder) => {
 
 			settings[key] = value;
 		});
+
+		console.log(settings);
 
 		return settings;
 	};

@@ -17,7 +17,7 @@ module.exports = (() => {
 	};
 
 	const GetMkvmerge = () =>
-		mkvmConstructor("X:\\Program Files\\MKVToolNix\\mkvmerge.exe");
+		mkvmConstructor("X:\\Program Files\\MKVToolNix\\mkvmerge.exe"); // X:\Program Files\MKVToolNix\mkvmerge.exe
 
 	const AddToCon = (file, settings) => {
 		settings = settings || {};
@@ -26,6 +26,8 @@ module.exports = (() => {
 		settings.forEach((settings) => {
 			settings.type = settings.type || GetType(file);
 			settings.language = settings.language || "und";
+			console.log("default: ", settings.default);
+			settings.default = Boolean(Number(settings.default));
 		});
 
 		settings[settings.length - 1].file = file;
@@ -47,11 +49,11 @@ module.exports = (() => {
 				const s = settings[i];
 				if (s.language)
 					mkvm.AddArgument("--language", `${i}:${s.language}`);
-				if (s.default)
-					mkvm.AddArgument(
-						"--default-track",
-						`${i}:${s.default ? "yes" : "no"}`
-					);
+				mkvm.AddArgument(
+					"--default-track",
+					`${i}:${s.default ? "yes" : "no"}`
+				);
+				console.log("default: ", s.default);
 				if (s.dimensions)
 					mkvm.AddArgument(
 						"--display-dimensions",
