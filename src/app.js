@@ -7,36 +7,45 @@ const ManifestManager = require("./manifestManager");
 
 const log = (text) => cli.debug(text);
 
-let EPISOD = "07";
-const EPISODS = ["09", "10", "11", "12"];
-// const EPISODS = ["S1", "S2", "S3", "S4", "S5", "S6"];
-
 const PATH_ANIME =
-	"D:\\Загрузки\\!Torrent\\[Moozzi2] Kakegurui XX [BDRip 1080p x264 FLAC]";
+	"D:\\Загрузки\\!Torrent\\[Kawaiika-Raws] Shingeki no Kyojin (2019) [BDRip 1920x1080 HEVC FLAC]";
 
-const Main = () => {
-	// Manager.StartBuilding(Parser(path.join(__dirname, `..\\Test2\\`)));
+const Main = (args, options) => {
+	const manifestSttings = {
+		root: options.root || PATH_ANIME,
+		name: options.name,
+		indexPosition: options["index-position"],
+		default: {
+			Audio: options["default-audio"],
+		},
+	};
+	const settings = {
+		manifestOnly: options.manifest,
+	};
 
-	// console.log(
-	// 	Parser(
-	// 		`D:\\Загрузки\\!Torrent\\[Moozzi2] Kakegurui [BDRip 1080p x264 FLAC]`
-	// 	)
-	// );
+	console.log(manifestSttings);
+	console.log(settings);
 
 	ManifestManager.CreateManifest(
-		ManifestManager.GenerateManifest({
-			root: PATH_ANIME,
-			name: "Kakegurui XX",
-			indexPosition: 1,
-			default: {
-				Audio: 2,
-			},
-		})
+		ManifestManager.GenerateManifest(manifestSttings)
 	);
 
-	Manager.StartBuilding(Parser(PATH_ANIME));
+	if (!settings.manifestOnly)
+		Manager.StartBuilding(Parser(manifestSttings.root));
+};
+
+const ParseArgs = () => {
+	cli.parse({
+		root: ["r", "Path to folder", "folder"],
+		name: ["n", "Name", "string", "Video"],
+		"index-position": ["i", "Position index value", "int", 0],
+		"default-audio": ["a", "Default audio", "int", 1],
+		manifest: ["m", "Only create manifest", "bool", false],
+		debug: [false, "Debug mode", "bool", false],
+	});
 };
 
 log("Start");
-Main();
+ParseArgs();
+cli.main(Main);
 log("End.");

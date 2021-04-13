@@ -51,7 +51,10 @@ module.exports = (folder) => {
 						ParseDir(
 							path.join(folder, dir),
 							(dirSigns) => {
-								if (dirSigns.toLowerCase() === "signs") {
+								if (
+									dirSigns.toLowerCase() === "signs" ||
+									dirSigns.toLowerCase() === "надписи"
+								) {
 									ParseDir(
 										path.join(folder, dir, dirSigns),
 										undefined,

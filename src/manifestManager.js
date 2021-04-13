@@ -105,7 +105,10 @@ module.exports = (() => {
 					ParseDir(
 						path.join(folder, dir),
 						(dirSigns) => {
-							if (dirSigns.toLowerCase() === "signs") {
+							if (
+								dirSigns.toLowerCase() === "signs" ||
+								dirSigns.toLowerCase() === "надписи"
+							) {
 								ParseDir(
 									path.join(folder, dir, dirSigns),
 									undefined,
@@ -124,6 +127,7 @@ module.exports = (() => {
 											fileSettings.language || language;
 										fileSettings.name =
 											fileSettings.name || "Signs";
+										fileSettings.default = true;
 
 										folderSettings.Subtitle.push(
 											fileSettings

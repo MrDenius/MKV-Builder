@@ -94,8 +94,10 @@ module.exports = (() => {
 			const q = query[i];
 			if (!q) return;
 			console.log(q);
+			let index = String(q.Video.index);
+			if (index.length === 1) index = `0${index}`;
 			mkv(
-				path.join(outputPath, `[${q.Video.index}] ${q.Video.name}.mkv`)
+				path.join(outputPath, `[${index}] ${q.Video.name}.mkv`)
 			).AddToCon(q.Video.path, [
 				{ language: q.Video.language },
 				{ language: q.Video.language },
